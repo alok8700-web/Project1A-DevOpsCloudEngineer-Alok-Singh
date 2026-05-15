@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: novapay-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: novapay-app
+  template:
+    metadata:
+      labels:
+        app: novapay-app
+    spec:
+      containers:
+      - name: novapay-app
+        image: alok8700/novapay-app:latest
+        ports:
+        - containerPort: 8080

@@ -1,13 +1,15 @@
-# NovaPay Zero-Downtime CI/CD Pipeline
+# NovaPay Zero-Downtime CI/CD (Simulation)
 
-Enterprise DevOps simulation project for regulated banking CI/CD architecture.
+This repository is an enterprise DevOps architecture simulation for NovaPay Digital Bank.
 
-## Stack
-- Spring Boot
-- Docker
-- Kubernetes
-- GitHub Actions
-- Helm
-- ArgoCD
-- Prometheus
-- Grafana
+## Scope
+- Java 21 + Spring Boot payment microservice
+- GitHub Actions CI pipeline with quality/security gates
+- Docker + Kubernetes + Helm + ArgoCD manifests
+- Terraform examples, OPA policy examples
+- Runbooks, rollback, compliance, and observability docs
+
+## Microservice API
+- `GET /health`
+- `GET /payments`
+- `POST /payments`
