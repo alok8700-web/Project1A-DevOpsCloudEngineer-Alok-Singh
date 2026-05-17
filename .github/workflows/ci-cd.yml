@@ -1,4 +1,4 @@
-```yaml
+yaml
 name: CI-CD Pipeline
 
 on:
@@ -48,5 +48,5 @@ jobs:
           git commit -m "Update image tag to ${{ github.sha }}" || echo "No changes"
 
           git push
-```
+
 
