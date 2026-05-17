@@ -21,6 +21,7 @@ jobs:
 
       - name: SonarQube Scan
         run: |
+          cd app
           mvn sonar:sonar \
           -Dsonar.projectKey=novapay \
           -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
