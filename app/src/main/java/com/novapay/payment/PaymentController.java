@@ -15,7 +15,7 @@ public class PaymentController {
 
   @GetMapping("/payments")
   public List<Map<String, Object>> payments() {
-    return List.of(Map.of("id", 1, "amount", 2000, "status", "CREATED", "createdAt", Instant.now().toString()));
+    return List.of(Map.of("id", 1, "amount", 3000, "status", "CREATED", "createdAt", Instant.now().toString()));
   }
 
   @PostMapping("/payments")
