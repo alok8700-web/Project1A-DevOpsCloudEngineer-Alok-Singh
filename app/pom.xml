@@ -16,6 +16,8 @@
 
     <properties>
         <java.version>21</java.version>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
     </properties>
 
     <dependencies>
@@ -39,8 +41,14 @@
             <scope>test</scope>
         </dependency>
 
-</dependencies>
-<distributionManagement> <repository> <id>nexus</id> <url>http://http://54.89.158.204:8081/repository/maven-releases/</url> </repository> </distributionManagement>
+    </dependencies>
+
+    <distributionManagement>
+        <repository>
+            <id>nexus</id>
+            <url>http://54.89.158.204:8081/repository/maven-releases/</url>
+        </repository>
+    </distributionManagement>
 
     <build>
         <plugins>
@@ -55,3 +63,5 @@
     </build>
 
 </project>
+
+
