@@ -44,11 +44,24 @@
     </dependencies>
 
     <distributionManagement>
-        <repository>
-            <id>nexus</id>
-            <url>http://54.89.158.204:8081/repository/maven-releases/</url>
-        </repository>
-    </distributionManagement>
+
+    <repository>
+        <id>nexus</id>
+        <url>http://54.89.158.204:8081/repository/maven-releases/</url>
+    </repository>
+
+    <snapshotRepository>
+        <id>nexus</id>
+        <url>http://54.89.158.204:8081/repository/maven-snapshots/</url>
+    </snapshotRepository>
+
+</distributionManagement>
+
+        
+            
+            
+        
+    
 
     <build>
         <plugins>
