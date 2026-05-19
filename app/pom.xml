@@ -8,11 +8,13 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>3.3.5</version>
+        <relativePath/>
     </parent>
 
     <groupId>com.novapay</groupId>
     <artifactId>payment-service</artifactId>
     <version>0.0.1-SNAPSHOT</version>
+    <name>payment-service</name>
 
     <properties>
         <java.version>21</java.version>
@@ -34,15 +36,13 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
-	<!-- Prometheus Metrics -->
+        <!-- Prometheus Metrics -->
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-registry-prometheus</artifactId>
         </dependency>
 
-
-
-        <!-- Spring Boot Testing -->
+        <!-- Testing -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -53,28 +53,22 @@
 
     <distributionManagement>
 
-    <repository>
-        <id>nexus</id>
-        <url>http://54.89.158.204:8081/repository/maven-releases/</url>
-    </repository>
+        <repository>
+            <id>nexus</id>
+            <url>http://54.89.158.204:8081/repository/maven-releases/</url>
+        </repository>
 
-    <snapshotRepository>
-        <id>nexus</id>
-        <url>http://54.89.158.204:8081/repository/maven-snapshots/</url>
-    </snapshotRepository>
+        <snapshotRepository>
+            <id>nexus</id>
+            <url>http://54.89.158.204:8081/repository/maven-snapshots/</url>
+        </snapshotRepository>
 
-</distributionManagement>
-
-        
-            
-            
-        
-    
+    </distributionManagement>
 
     <build>
         <plugins>
 
-            <!-- Spring Boot Maven Plugin -->
+            <!-- Spring Boot Plugin -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
@@ -84,5 +78,3 @@
     </build>
 
 </project>
-
-
