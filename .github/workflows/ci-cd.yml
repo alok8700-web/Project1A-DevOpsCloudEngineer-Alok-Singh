@@ -92,3 +92,14 @@ jobs:
 
           git push
 
+      - name: Package Helm Chart
+        run: |
+          helm package novapay-chart
+
+      - name: Upload Helm Chart to Nexus
+        run: |
+          curl -u ${{ secrets.NEXUS_USERNAME }}:${{ secrets.NEXUS_PASSWORD }} \
+          --upload-file novapay-chart-0.1.0.tgz \
+          ${{ secrets.NEXUS_HELM_REPO }}
+    
+
