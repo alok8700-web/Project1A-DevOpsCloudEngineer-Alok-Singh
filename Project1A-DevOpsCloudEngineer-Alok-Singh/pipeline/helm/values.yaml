@@ -1,6 +1,0 @@
-image:
-  repository: alok8700/novapay-app
-  tag: latest
-service:
-  port: 80
-containerPort: 8080
