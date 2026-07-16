@@ -1,25 +1,37 @@
 package com.novapay.payment;
 
-import java.time.Instant;
+import com.novapay.payment.model.Payment;
+import com.novapay.payment.service.PaymentService;
+import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 import java.util.Map;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class PaymentController {
-  @GetMapping("/health")
-  public Map<String, String> health() { return Map.of("status", "UP"); }
 
-  @GetMapping("/payments")
-  public List<Map<String, Object>> payments() {
-    return List.of(Map.of("id", 1, "amount", 3000, "status", "CREATED", "createdAt", Instant.now().toString()));
-  }
+    private final PaymentService paymentService;
 
-  @PostMapping("/payments")
-  public Map<String, Object> create(@RequestBody Map<String, Object> request) {
-    return Map.of("id", 2, "amount", request.getOrDefault("amount", 0), "status", "CREATED", "createdAt", Instant.now().toString());
-  }
+    public PaymentController(PaymentService paymentService) {
+        this.paymentService = paymentService;
+    }
+
+    @GetMapping("/health")
+    public Map<String, String> health() {
+        return Map.of("status", "UP");
+    }
+
+    @GetMapping("/payments")
+    public List<Payment> payments() {
+        return paymentService.getPayments();
+    }
+
+    @PostMapping("/payments")
+    public Payment create(@RequestBody Map<String, Object> request) {
+
+        Integer amount = ((Number) request.getOrDefault("amount", 0))
+                .intValue();
+
+        return paymentService.createPayment(amount);
+    }
 }

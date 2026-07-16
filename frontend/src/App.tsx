@@ -13,7 +13,9 @@ import {
 } from "@mui/icons-material";
 
 import {
+  Alert,
   Avatar,
+  Button,
   Box,
   Card,
   CardContent,
@@ -27,6 +29,7 @@ import {
   ListItemIcon,
   ListItemText,
   ThemeProvider,
+  TextField,
   Typography,
   createTheme,
 } from "@mui/material";
@@ -64,6 +67,9 @@ function App() {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [amount, setAmount] = useState("");
+  const [creatingPayment, setCreatingPayment] = useState(false);
+  const [paymentError, setPaymentError] = useState("");
 
   const menuItems = [
     { label: "Dashboard", icon: <Dashboard /> },
@@ -107,6 +113,44 @@ function App() {
           new Date(a.createdAt).getTime()
       )[0]
     : null;
+
+  const createPayment = async () => {
+    const paymentAmount = Number(amount);
+
+    if (!paymentAmount || paymentAmount <= 0) {
+      setPaymentError("Enter a valid payment amount");
+      return;
+    }
+
+    try {
+      setCreatingPayment(true);
+      setPaymentError("");
+
+      const response = await fetch("/api/payments", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          amount: paymentAmount,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Payment creation failed");
+      }
+
+      const paymentsResponse = await fetch("/api/payments");
+      const updatedPayments: Payment[] = await paymentsResponse.json();
+
+      setPayments(updatedPayments);
+      setAmount("");
+    } catch {
+      setPaymentError("Unable to create payment");
+    } finally {
+      setCreatingPayment(false);
+    }
+  };
 
   return (
     <ThemeProvider theme={theme}>
@@ -272,6 +316,86 @@ function App() {
 
           {!loading && !error && (
             <>
+              <Card
+                sx={{
+                  mb: 3,
+                  background:
+                    "linear-gradient(135deg, rgba(91,140,255,0.18), rgba(140,108,255,0.08))",
+                  border: "1px solid rgba(91,140,255,0.2)",
+                }}
+              >
+                <CardContent sx={{ p: 3 }}>
+                  <Typography
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: 18,
+                      mb: 0.5,
+                    }}
+                  >
+                    Create Payment
+                  </Typography>
+
+                  <Typography
+                    color="text.secondary"
+                    variant="body2"
+                    sx={{ mb: 3 }}
+                  >
+                    Create a payment through the NovaPay API
+                  </Typography>
+
+                  <Box
+                    sx={{
+                      display: "flex",
+                      gap: 2,
+                      alignItems: "flex-start",
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    <TextField
+                      label="Amount"
+                      placeholder="Enter amount"
+                      type="number"
+                      value={amount}
+                      onChange={(event) => {
+                        setAmount(event.target.value);
+                        setPaymentError("");
+                      }}
+                      sx={{
+                        minWidth: 260,
+                        "& .MuiOutlinedInput-root": {
+                          borderRadius: 3,
+                        },
+                      }}
+                    />
+
+                    <Button
+                      variant="contained"
+                      onClick={createPayment}
+                      disabled={creatingPayment}
+                      sx={{
+                        height: 56,
+                        px: 4,
+                        borderRadius: 3,
+                        fontWeight: 700,
+                      }}
+                    >
+                      {creatingPayment
+                        ? "Creating..."
+                        : "Create Payment"}
+                    </Button>
+                  </Box>
+
+                  {paymentError && (
+                    <Alert
+                      severity="error"
+                      sx={{ mt: 2, borderRadius: 2 }}
+                    >
+                      {paymentError}
+                    </Alert>
+                  )}
+                </CardContent>
+              </Card>
+
               <Box
                 sx={{
                   display: "grid",
