@@ -1,9 +1,7 @@
 import {
   AccountBalanceWallet,
-  ArrowDownward,
   ArrowUpward,
   BarChart,
-  CreditCard,
   Dashboard,
   Logout,
   MoreHoriz,
@@ -20,6 +18,7 @@ import {
   Card,
   CardContent,
   Chip,
+  CircularProgress,
   CssBaseline,
   Divider,
   IconButton,
@@ -32,7 +31,14 @@ import {
   createTheme,
 } from "@mui/material";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
+type Payment = {
+  id: number;
+  amount: number;
+  status: string;
+  createdAt: string;
+};
 
 const theme = createTheme({
   palette: {
@@ -53,43 +59,11 @@ const theme = createTheme({
   },
 });
 
-const transactions = [
-  {
-    name: "Netflix",
-    category: "Entertainment",
-    amount: "-₹649.00",
-    icon: "N",
-    type: "expense",
-    date: "Today, 10:32 AM",
-  },
-  {
-    name: "Salary Credit",
-    category: "Income",
-    amount: "+₹85,000.00",
-    icon: "₹",
-    type: "income",
-    date: "Yesterday, 09:15 AM",
-  },
-  {
-    name: "Amazon",
-    category: "Shopping",
-    amount: "-₹2,499.00",
-    icon: "A",
-    type: "expense",
-    date: "May 18, 05:45 PM",
-  },
-  {
-    name: "Uber",
-    category: "Transport",
-    amount: "-₹349.00",
-    icon: "U",
-    type: "expense",
-    date: "May 17, 08:20 PM",
-  },
-];
-
 function App() {
   const [activeMenu, setActiveMenu] = useState("Dashboard");
+  const [payments, setPayments] = useState<Payment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   const menuItems = [
     { label: "Dashboard", icon: <Dashboard /> },
@@ -97,6 +71,42 @@ function App() {
     { label: "Transfer", icon: <Send /> },
     { label: "Analytics", icon: <BarChart /> },
   ];
+
+  useEffect(() => {
+    fetch("/api/payments")
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to fetch payments");
+        }
+
+        return response.json();
+      })
+      .then((data: Payment[]) => {
+        setPayments(data);
+        setLoading(false);
+      })
+      .catch(() => {
+        setError("Unable to load payment data");
+        setLoading(false);
+      });
+  }, []);
+
+  const totalAmount = payments.reduce(
+    (total, payment) => total + payment.amount,
+    0
+  );
+
+  const createdPayments = payments.filter(
+    (payment) => payment.status === "CREATED"
+  ).length;
+
+  const latestPayment = payments.length
+    ? [...payments].sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() -
+          new Date(a.createdAt).getTime()
+      )[0]
+    : null;
 
   return (
     <ThemeProvider theme={theme}>
@@ -156,7 +166,9 @@ function App() {
                 <ListItemIcon
                   sx={{
                     color:
-                      activeMenu === item.label ? "#5B8CFF" : "text.secondary",
+                      activeMenu === item.label
+                        ? "#5B8CFF"
+                        : "text.secondary",
                     minWidth: 42,
                   }}
                 >
@@ -168,7 +180,8 @@ function App() {
                   slotProps={{
                     primary: {
                       sx: {
-                        fontWeight: activeMenu === item.label ? 700 : 400,
+                        fontWeight:
+                          activeMenu === item.label ? 700 : 400,
                       },
                     },
                   }}
@@ -182,6 +195,7 @@ function App() {
               <ListItemIcon sx={{ minWidth: 42 }}>
                 <Settings />
               </ListItemIcon>
+
               <ListItemText primary="Settings" />
             </ListItemButton>
 
@@ -189,6 +203,7 @@ function App() {
               <ListItemIcon sx={{ minWidth: 42 }}>
                 <Logout />
               </ListItemIcon>
+
               <ListItemText primary="Logout" />
             </ListItemButton>
           </Box>
@@ -204,15 +219,12 @@ function App() {
             }}
           >
             <Box>
-              <Typography
-                variant="h4"
-                sx={{ fontWeight: 800 }}
-              >
+              <Typography variant="h4" sx={{ fontWeight: 800 }}>
                 Good evening, Alok 👋
               </Typography>
 
               <Typography color="text.secondary" sx={{ mt: 1 }}>
-                Here's what's happening with your money today.
+                Here's what's happening with NovaPay today.
               </Typography>
             </Box>
 
@@ -238,258 +250,352 @@ function App() {
             </Box>
           </Box>
 
-          <Box
-            sx={{
-              display: "grid",
-              gridTemplateColumns: {
-                xs: "1fr",
-                sm: "repeat(2, 1fr)",
-                lg: "repeat(4, 1fr)",
-              },
-              gap: 2,
-              mb: 3,
-            }}
-          >
-            <StatCard
-              title="Total Balance"
-              value="₹1,24,560"
-              change="+12.8%"
-              icon={<AccountBalanceWallet />}
-              positive
-            />
-
-            <StatCard
-              title="Monthly Income"
-              value="₹85,000"
-              change="+8.2%"
-              icon={<ArrowUpward />}
-              positive
-            />
-
-            <StatCard
-              title="Monthly Expenses"
-              value="₹32,450"
-              change="-4.6%"
-              icon={<ArrowDownward />}
-            />
-
-            <StatCard
-              title="Savings"
-              value="₹52,550"
-              change="+18.4%"
-              icon={<TrendingUp />}
-              positive
-            />
-          </Box>
-
-          <Box
-            sx={{
-              display: "grid",
-              gridTemplateColumns: { xs: "1fr", lg: "1.5fr 1fr" },
-              gap: 3,
-              mb: 3,
-            }}
-          >
-            <Card
+          {loading && (
+            <Box
               sx={{
-                minHeight: 270,
-                background:
-                  "linear-gradient(135deg, #1E3A8A 0%, #312E81 55%, #111827 100%)",
+                display: "flex",
+                justifyContent: "center",
+                py: 8,
               }}
             >
-              <CardContent sx={{ p: 4 }}>
-                <Box
+              <CircularProgress />
+            </Box>
+          )}
+
+          {error && (
+            <Card sx={{ mb: 3 }}>
+              <CardContent>
+                <Typography color="error">{error}</Typography>
+              </CardContent>
+            </Card>
+          )}
+
+          {!loading && !error && (
+            <>
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: {
+                    xs: "1fr",
+                    sm: "repeat(2, 1fr)",
+                    lg: "repeat(4, 1fr)",
+                  },
+                  gap: 2,
+                  mb: 3,
+                }}
+              >
+                <StatCard
+                  title="Payment Volume"
+                  value={`₹${totalAmount.toLocaleString("en-IN")}`}
+                  change="Live API data"
+                  icon={<AccountBalanceWallet />}
+                  positive
+                />
+
+                <StatCard
+                  title="Total Payments"
+                  value={payments.length.toString()}
+                  change="Live API data"
+                  icon={<Payments />}
+                  positive
+                />
+
+                <StatCard
+                  title="Created Payments"
+                  value={createdPayments.toString()}
+                  change="Current status"
+                  icon={<ArrowUpward />}
+                  positive
+                />
+
+                <StatCard
+                  title="Latest Payment"
+                  value={
+                    latestPayment
+                      ? `₹${latestPayment.amount.toLocaleString("en-IN")}`
+                      : "₹0"
+                  }
+                  change="Latest transaction"
+                  icon={<TrendingUp />}
+                  positive
+                />
+              </Box>
+
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: {
+                    xs: "1fr",
+                    lg: "1.5fr 1fr",
+                  },
+                  gap: 3,
+                  mb: 3,
+                }}
+              >
+                <Card
                   sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    mb: 5,
+                    minHeight: 270,
+                    background:
+                      "linear-gradient(135deg, #1E3A8A 0%, #312E81 55%, #111827 100%)",
                   }}
                 >
-                  <Box>
+                  <CardContent sx={{ p: 4 }}>
                     <Typography color="rgba(255,255,255,0.7)">
-                      Available Balance
+                      NovaPay Payment Volume
                     </Typography>
 
                     <Typography
                       variant="h3"
-                      sx={{ mt: 1, fontWeight: 800 }}
+                      sx={{
+                        mt: 2,
+                        fontWeight: 800,
+                      }}
                     >
-                      ₹1,24,560
-                    </Typography>
-                  </Box>
-
-                  <CreditCard sx={{ fontSize: 42, opacity: 0.7 }} />
-                </Box>
-
-                <Box sx={{ display: "flex", gap: 6 }}>
-                  <Box>
-                    <Typography variant="caption" color="rgba(255,255,255,0.6)">
-                      CARD NUMBER
+                      ₹{totalAmount.toLocaleString("en-IN")}
                     </Typography>
 
-                    <Typography sx={{ mt: 1 }}>
-                      •••• •••• •••• 4821
-                    </Typography>
-                  </Box>
-
-                  <Box>
-                    <Typography variant="caption" color="rgba(255,255,255,0.6)">
-                      VALID THRU
+                    <Typography
+                      color="rgba(255,255,255,0.7)"
+                      sx={{ mt: 2 }}
+                    >
+                      Calculated from live payment records
                     </Typography>
 
-                    <Typography sx={{ mt: 1 }}>12/28</Typography>
-                  </Box>
-                </Box>
-              </CardContent>
-            </Card>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        gap: 6,
+                        mt: 5,
+                      }}
+                    >
+                      <Box>
+                        <Typography
+                          variant="caption"
+                          color="rgba(255,255,255,0.6)"
+                        >
+                          PAYMENTS
+                        </Typography>
 
-            <Card sx={{ minHeight: 270 }}>
-              <CardContent sx={{ p: 3 }}>
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    mb: 3,
-                  }}
-                >
-                  <Box>
-                    <Typography sx={{ fontWeight: 700, fontSize: 18 }}>
-                      Spending Overview
-                    </Typography>
+                        <Typography sx={{ mt: 1 }}>
+                          {payments.length}
+                        </Typography>
+                      </Box>
 
-                    <Typography color="text.secondary" variant="body2">
-                      This month
-                    </Typography>
-                  </Box>
+                      <Box>
+                        <Typography
+                          variant="caption"
+                          color="rgba(255,255,255,0.6)"
+                        >
+                          API STATUS
+                        </Typography>
 
-                  <IconButton>
-                    <MoreHoriz />
-                  </IconButton>
-                </Box>
+                        <Typography sx={{ mt: 1 }}>
+                          CONNECTED
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </CardContent>
+                </Card>
 
-                <Box
-                  sx={{
-                    height: 130,
-                    display: "flex",
-                    alignItems: "end",
-                    gap: 1.5,
-                    px: 1,
-                  }}
-                >
-                  {[35, 55, 42, 78, 62, 90, 70, 58, 82, 65, 95, 72].map(
-                    (height, index) => (
-                      <Box
-                        key={index}
+                <Card sx={{ minHeight: 270 }}>
+                  <CardContent sx={{ p: 3 }}>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        mb: 3,
+                      }}
+                    >
+                      <Box>
+                        <Typography
+                          sx={{
+                            fontWeight: 700,
+                            fontSize: 18,
+                          }}
+                        >
+                          Payment Overview
+                        </Typography>
+
+                        <Typography
+                          color="text.secondary"
+                          variant="body2"
+                        >
+                          Live backend data
+                        </Typography>
+                      </Box>
+
+                      <IconButton>
+                        <MoreHoriz />
+                      </IconButton>
+                    </Box>
+
+                    <Box
+                      sx={{
+                        height: 130,
+                        display: "flex",
+                        alignItems: "end",
+                        gap: 1.5,
+                        px: 1,
+                      }}
+                    >
+                      {payments.length === 0 ? (
+                        <Typography color="text.secondary">
+                          No payments available
+                        </Typography>
+                      ) : (
+                        payments.slice(-12).map((payment) => (
+                          <Box
+                            key={payment.id}
+                            sx={{
+                              flex: 1,
+                              height: `${Math.min(
+                                Math.max(payment.amount / 50, 15),
+                                100
+                              )}%`,
+                              borderRadius: "6px 6px 2px 2px",
+                              background: "#5B8CFF",
+                            }}
+                          />
+                        ))
+                      )}
+                    </Box>
+
+                    <Divider sx={{ mt: 2, mb: 2 }} />
+
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <Typography
+                        color="text.secondary"
+                        variant="body2"
+                      >
+                        Backend status
+                      </Typography>
+
+                      <Typography
                         sx={{
-                          flex: 1,
-                          height: `${height}%`,
-                          borderRadius: "6px 6px 2px 2px",
-                          background:
-                            index === 10
-                              ? "#5B8CFF"
-                              : "rgba(91,140,255,0.22)",
+                          fontWeight: 700,
+                          color: "#4ADE80",
                         }}
-                      />
-                    )
-                  )}
-                </Box>
-
-                <Divider sx={{ mt: 2, mb: 2 }} />
-
-                <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                  <Typography color="text.secondary" variant="body2">
-                    Total spending
-                  </Typography>
-
-                  <Typography sx={{ fontWeight: 700 }}>
-                    ₹32,450
-                  </Typography>
-                </Box>
-              </CardContent>
-            </Card>
-          </Box>
-
-          <Card>
-            <CardContent sx={{ p: 3 }}>
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  mb: 3,
-                }}
-              >
-                <Box>
-                  <Typography sx={{ fontWeight: 700, fontSize: 18 }}>
-                    Recent Transactions
-                  </Typography>
-
-                  <Typography color="text.secondary" variant="body2">
-                    Your latest payment activity
-                  </Typography>
-                </Box>
-
-                <Chip
-                  label="View all"
-                  clickable
-                  sx={{
-                    color: "#5B8CFF",
-                    background: "rgba(91,140,255,0.1)",
-                  }}
-                />
+                      >
+                        ONLINE
+                      </Typography>
+                    </Box>
+                  </CardContent>
+                </Card>
               </Box>
 
-              {transactions.map((transaction, index) => (
-                <Box key={transaction.name}>
+              <Card>
+                <CardContent sx={{ p: 3 }}>
                   <Box
                     sx={{
                       display: "flex",
-                      alignItems: "center",
-                      py: 2,
+                      justifyContent: "space-between",
+                      mb: 3,
                     }}
                   >
-                    <Avatar
-                      sx={{
-                        mr: 2,
-                        background:
-                          transaction.type === "income"
-                            ? "rgba(34,197,94,0.15)"
-                            : "rgba(91,140,255,0.15)",
-                        color:
-                          transaction.type === "income"
-                            ? "#4ADE80"
-                            : "#5B8CFF",
-                      }}
-                    >
-                      {transaction.icon}
-                    </Avatar>
-
-                    <Box sx={{ flex: 1 }}>
-                      <Typography sx={{ fontWeight: 600 }}>
-                        {transaction.name}
+                    <Box>
+                      <Typography
+                        sx={{
+                          fontWeight: 700,
+                          fontSize: 18,
+                        }}
+                      >
+                        Recent Payments
                       </Typography>
 
-                      <Typography variant="body2" color="text.secondary">
-                        {transaction.category} • {transaction.date}
+                      <Typography
+                        color="text.secondary"
+                        variant="body2"
+                      >
+                        Live data from Spring Boot API
                       </Typography>
                     </Box>
 
-                    <Typography
-                      sx={{ fontWeight: 700 }}
-                      color={
-                        transaction.type === "income"
-                          ? "#4ADE80"
-                          : "text.primary"
-                      }
-                    >
-                      {transaction.amount}
-                    </Typography>
+                    <Chip
+                      label="API Connected"
+                      sx={{
+                        color: "#4ADE80",
+                        background: "rgba(34,197,94,0.1)",
+                      }}
+                    />
                   </Box>
 
-                  {index !== transactions.length - 1 && <Divider />}
-                </Box>
-              ))}
-            </CardContent>
-          </Card>
+                  {payments.length === 0 && (
+                    <Typography color="text.secondary">
+                      No payments found.
+                    </Typography>
+                  )}
+
+                  {[...payments]
+                    .sort(
+                      (a, b) =>
+                        new Date(b.createdAt).getTime() -
+                        new Date(a.createdAt).getTime()
+                    )
+                    .map((payment, index) => (
+                      <Box key={payment.id}>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            py: 2,
+                          }}
+                        >
+                          <Avatar
+                            sx={{
+                              mr: 2,
+                              background:
+                                "rgba(91,140,255,0.15)",
+                              color: "#5B8CFF",
+                            }}
+                          >
+                            ₹
+                          </Avatar>
+
+                          <Box sx={{ flex: 1 }}>
+                            <Typography
+                              sx={{ fontWeight: 600 }}
+                            >
+                              Payment #{payment.id}
+                            </Typography>
+
+                            <Typography
+                              variant="body2"
+                              color="text.secondary"
+                            >
+                              {payment.status} •{" "}
+                              {new Date(
+                                payment.createdAt
+                              ).toLocaleString("en-IN")}
+                            </Typography>
+                          </Box>
+
+                          <Typography
+                            sx={{
+                              fontWeight: 700,
+                              color: "#4ADE80",
+                            }}
+                          >
+                            +₹
+                            {payment.amount.toLocaleString(
+                              "en-IN"
+                            )}
+                          </Typography>
+                        </Box>
+
+                        {index !== payments.length - 1 && (
+                          <Divider />
+                        )}
+                      </Box>
+                    ))}
+                </CardContent>
+              </Card>
+            </>
+          )}
         </Box>
       </Box>
     </ThemeProvider>
@@ -533,7 +639,10 @@ function StatCard({
 
         <Typography
           variant="h5"
-          sx={{ mt: 2, fontWeight: 800 }}
+          sx={{
+            mt: 2,
+            fontWeight: 800,
+          }}
         >
           {value}
         </Typography>
@@ -546,7 +655,7 @@ function StatCard({
             fontWeight: 600,
           }}
         >
-          {change} from last month
+          {change}
         </Typography>
       </CardContent>
     </Card>
