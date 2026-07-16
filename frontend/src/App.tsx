@@ -114,6 +114,36 @@ function App() {
       )[0]
     : null;
 
+  const updatePaymentStatus = async (
+    paymentId: number,
+    status: string
+  ) => {
+    try {
+      const response = await fetch(
+        `/api/payments/${paymentId}/status`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ status }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Status update failed");
+      }
+
+      const paymentsResponse = await fetch("/api/payments");
+      const updatedPayments: Payment[] =
+        await paymentsResponse.json();
+
+      setPayments(updatedPayments);
+    } catch {
+      setPaymentError("Unable to update payment status");
+    }
+  };
+
   const createPayment = async () => {
     const paymentAmount = Number(amount);
 
@@ -698,17 +728,85 @@ function App() {
                             </Typography>
                           </Box>
 
-                          <Typography
+                          <Box
                             sx={{
-                              fontWeight: 700,
-                              color: "#4ADE80",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 2,
                             }}
                           >
-                            +₹
-                            {payment.amount.toLocaleString(
-                              "en-IN"
+                            <Chip
+                              label={payment.status}
+                              size="small"
+                              sx={{
+                                fontWeight: 700,
+                                color:
+                                  payment.status === "COMPLETED"
+                                    ? "#4ADE80"
+                                    : payment.status ===
+                                      "PROCESSING"
+                                    ? "#FACC15"
+                                    : "#60A5FA",
+                                background:
+                                  payment.status === "COMPLETED"
+                                    ? "rgba(34,197,94,0.12)"
+                                    : payment.status ===
+                                      "PROCESSING"
+                                    ? "rgba(250,204,21,0.12)"
+                                    : "rgba(96,165,250,0.12)",
+                              }}
+                            />
+
+                            {payment.status === "CREATED" && (
+                              <Button
+                                size="small"
+                                variant="outlined"
+                                onClick={() =>
+                                  updatePaymentStatus(
+                                    payment.id,
+                                    "PROCESSING"
+                                  )
+                                }
+                                sx={{
+                                  borderRadius: 2,
+                                  fontWeight: 700,
+                                }}
+                              >
+                                Process
+                              </Button>
                             )}
-                          </Typography>
+
+                            {payment.status === "PROCESSING" && (
+                              <Button
+                                size="small"
+                                variant="contained"
+                                onClick={() =>
+                                  updatePaymentStatus(
+                                    payment.id,
+                                    "COMPLETED"
+                                  )
+                                }
+                                sx={{
+                                  borderRadius: 2,
+                                  fontWeight: 700,
+                                }}
+                              >
+                                Complete
+                              </Button>
+                            )}
+
+                            <Typography
+                              sx={{
+                                fontWeight: 700,
+                                color: "#4ADE80",
+                              }}
+                            >
+                              +₹
+                              {payment.amount.toLocaleString(
+                                "en-IN"
+                              )}
+                            </Typography>
+                          </Box>
                         </Box>
 
                         {index !== payments.length - 1 && (

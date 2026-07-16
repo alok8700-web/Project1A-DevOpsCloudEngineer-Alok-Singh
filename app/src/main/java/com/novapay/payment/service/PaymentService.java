@@ -42,4 +42,33 @@ public class PaymentService {
 
         return payment;
     }
+
+    public Payment updateStatus(Long paymentId, String newStatus) {
+
+        Payment payment = payments.stream()
+            .filter(item -> item.getId().equals(paymentId))
+            .findFirst()
+            .orElseThrow(() -> new RuntimeException("Payment not found"));
+
+        String currentStatus = payment.getStatus();
+
+        boolean validTransition =
+            currentStatus.equals("CREATED")
+                && newStatus.equals("PROCESSING")
+            || currentStatus.equals("PROCESSING")
+                && newStatus.equals("COMPLETED");
+
+        if (!validTransition) {
+            throw new IllegalStateException(
+                "Invalid payment status transition: "
+                    + currentStatus
+                    + " -> "
+                    + newStatus
+            );
+        }
+
+        payment.setStatus(newStatus);
+
+        return payment;
+    }
 }

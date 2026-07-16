@@ -30,8 +30,19 @@ public class PaymentController {
     public Payment create(@RequestBody Map<String, Object> request) {
 
         Integer amount = ((Number) request.getOrDefault("amount", 0))
-                .intValue();
+            .intValue();
 
         return paymentService.createPayment(amount);
+    }
+
+    @PatchMapping("/payments/{id}/status")
+    public Payment updateStatus(
+        @PathVariable Long id,
+        @RequestBody Map<String, String> request
+    ) {
+        return paymentService.updateStatus(
+            id,
+            request.get("status")
+        );
     }
 }
