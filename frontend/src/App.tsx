@@ -16,6 +16,9 @@ import {
   Alert,
   Avatar,
   Button,
+  Dialog,
+  DialogContent,
+  DialogTitle,
   Box,
   Card,
   CardContent,
@@ -70,6 +73,8 @@ function App() {
   const [amount, setAmount] = useState("");
   const [creatingPayment, setCreatingPayment] = useState(false);
   const [paymentError, setPaymentError] = useState("");
+  const [selectedPayment, setSelectedPayment] =
+    useState<Payment | null>(null);
 
   const menuItems = [
     { label: "Dashboard", icon: <Dashboard /> },
@@ -795,6 +800,22 @@ function App() {
                               </Button>
                             )}
 
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                setSelectedPayment(payment);
+                              }}
+                              sx={{
+                                borderRadius: 2,
+                                fontWeight: 700,
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              View Details
+                            </Button>
+
                             <Typography
                               sx={{
                                 fontWeight: 700,
@@ -820,6 +841,211 @@ function App() {
           )}
         </Box>
       </Box>
+
+      <Dialog
+        open={Boolean(selectedPayment)}
+        onClose={() => setSelectedPayment(null)}
+        fullWidth
+        maxWidth="sm"
+        slotProps={{
+          paper: {
+            sx: {
+              borderRadius: 4,
+              background:
+                "linear-gradient(145deg, #111827, #0B1220)",
+              border:
+                "1px solid rgba(255,255,255,0.08)",
+            },
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            fontWeight: 800,
+            fontSize: 22,
+          }}
+        >
+          Payment Details
+        </DialogTitle>
+
+        <DialogContent>
+          {selectedPayment && (
+            <Box>
+              <Box
+                sx={{
+                  mb: 3,
+                  p: 3,
+                  borderRadius: 3,
+                  background:
+                    "rgba(91,140,255,0.12)",
+                  textAlign: "center",
+                }}
+              >
+                <Typography
+                  color="text.secondary"
+                  variant="body2"
+                >
+                  Payment Amount
+                </Typography>
+
+                <Typography
+                  sx={{
+                    fontSize: 36,
+                    fontWeight: 800,
+                    mt: 1,
+                  }}
+                >
+                  ₹
+                  {selectedPayment.amount.toLocaleString(
+                    "en-IN"
+                  )}
+                </Typography>
+
+                <Chip
+                  label={selectedPayment.status}
+                  sx={{
+                    mt: 2,
+                    fontWeight: 700,
+                    color:
+                      selectedPayment.status === "COMPLETED"
+                        ? "#4ADE80"
+                        : selectedPayment.status ===
+                          "PROCESSING"
+                        ? "#FACC15"
+                        : "#60A5FA",
+                  }}
+                />
+              </Box>
+
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns:
+                    "repeat(2, 1fr)",
+                  gap: 2,
+                }}
+              >
+                <Box>
+                  <Typography
+                    color="text.secondary"
+                    variant="body2"
+                  >
+                    Payment ID
+                  </Typography>
+
+                  <Typography sx={{ fontWeight: 700 }}>
+                    #{selectedPayment.id}
+                  </Typography>
+                </Box>
+
+                <Box>
+                  <Typography
+                    color="text.secondary"
+                    variant="body2"
+                  >
+                    Created At
+                  </Typography>
+
+                  <Typography sx={{ fontWeight: 700 }}>
+                    {new Date(
+                      selectedPayment.createdAt
+                    ).toLocaleString("en-IN")}
+                  </Typography>
+                </Box>
+              </Box>
+
+              <Box sx={{ mt: 4 }}>
+                <Typography
+                  color="text.secondary"
+                  variant="body2"
+                  sx={{ mb: 2 }}
+                >
+                  Payment Lifecycle
+                </Typography>
+
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                >
+                  {[
+                    "CREATED",
+                    "PROCESSING",
+                    "COMPLETED",
+                  ].map((status, index) => {
+                    const statusOrder = [
+                      "CREATED",
+                      "PROCESSING",
+                      "COMPLETED",
+                    ];
+
+                    const currentIndex =
+                      statusOrder.indexOf(
+                        selectedPayment.status
+                      );
+
+                    const isActive =
+                      index <= currentIndex;
+
+                    return (
+                      <Box
+                        key={status}
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          flex: 1,
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            width: 14,
+                            height: 14,
+                            borderRadius: "50%",
+                            background: isActive
+                              ? "#4ADE80"
+                              : "rgba(255,255,255,0.15)",
+                            boxShadow: isActive
+                              ? "0 0 12px rgba(74,222,128,0.6)"
+                              : "none",
+                          }}
+                        />
+
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            ml: 1,
+                            fontWeight: isActive
+                              ? 700
+                              : 400,
+                          }}
+                        >
+                          {status}
+                        </Typography>
+
+                        {index < 2 && (
+                          <Box
+                            sx={{
+                              flex: 1,
+                              height: 2,
+                              mx: 1,
+                              background:
+                                index < currentIndex
+                                  ? "#4ADE80"
+                                  : "rgba(255,255,255,0.1)",
+                            }}
+                          />
+                        )}
+                      </Box>
+                    );
+                  })}
+                </Box>
+              </Box>
+            </Box>
+          )}
+        </DialogContent>
+      </Dialog>
+
     </ThemeProvider>
   );
 }
