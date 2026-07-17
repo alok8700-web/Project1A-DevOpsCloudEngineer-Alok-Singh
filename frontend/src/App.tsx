@@ -119,6 +119,18 @@ function App() {
       )[0]
     : null;
 
+  const statusCounts = {
+    CREATED: payments.filter(
+      (payment) => payment.status === "CREATED"
+    ).length,
+    PROCESSING: payments.filter(
+      (payment) => payment.status === "PROCESSING"
+    ).length,
+    COMPLETED: payments.filter(
+      (payment) => payment.status === "COMPLETED"
+    ).length,
+  };
+
   const updatePaymentStatus = async (
     paymentId: number,
     status: string
@@ -186,6 +198,287 @@ function App() {
       setCreatingPayment(false);
     }
   };
+
+  if (activeMenu === "Analytics") {
+    return (
+      <ThemeProvider theme={theme}>
+        <Box
+          sx={{
+            minHeight: "100vh",
+            display: "flex",
+            background: "#070B14",
+          }}
+        >
+          <Box sx={{ flex: 1, p: { xs: 2, md: 4 } }}>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                mb: 5,
+              }}
+            >
+              <Box>
+                <Typography
+                  variant="h4"
+                  sx={{ fontWeight: 800 }}
+                >
+                  Analytics
+                </Typography>
+
+                <Typography
+                  color="text.secondary"
+                  sx={{ mt: 1 }}
+                >
+                  Live payment insights from NovaPay API
+                </Typography>
+              </Box>
+
+              <Avatar
+                sx={{
+                  width: 44,
+                  height: 44,
+                  background:
+                    "linear-gradient(135deg, #5B8CFF, #8C6CFF)",
+                }}
+              >
+                AS
+              </Avatar>
+            </Box>
+
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: {
+                  xs: "1fr",
+                  sm: "repeat(2, 1fr)",
+                  lg: "repeat(3, 1fr)",
+                },
+                gap: 2,
+                mb: 3,
+              }}
+            >
+              <StatCard
+                title="Payment Volume"
+                value={`₹${totalAmount.toLocaleString(
+                  "en-IN"
+                )}`}
+                change="Live API data"
+                icon={<AccountBalanceWallet />}
+                positive
+              />
+
+              <StatCard
+                title="Total Transactions"
+                value={payments.length.toString()}
+                change="Live API data"
+                icon={<Payments />}
+                positive
+              />
+
+              <StatCard
+                title="Completed Payments"
+                value={statusCounts.COMPLETED.toString()}
+                change="Current status"
+                icon={<TrendingUp />}
+                positive
+              />
+            </Box>
+
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: {
+                  xs: "1fr",
+                  lg: "1fr 1fr",
+                },
+                gap: 3,
+              }}
+            >
+              <Card>
+                <CardContent sx={{ p: 3 }}>
+                  <Typography
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: 18,
+                    }}
+                  >
+                    Payment Status Distribution
+                  </Typography>
+
+                  <Typography
+                    color="text.secondary"
+                    variant="body2"
+                    sx={{ mt: 0.5, mb: 4 }}
+                  >
+                    Live payment lifecycle breakdown
+                  </Typography>
+
+                  {[
+                    {
+                      label: "CREATED",
+                      value: statusCounts.CREATED,
+                      icon: "🟢",
+                    },
+                    {
+                      label: "PROCESSING",
+                      value: statusCounts.PROCESSING,
+                      icon: "🟡",
+                    },
+                    {
+                      label: "COMPLETED",
+                      value: statusCounts.COMPLETED,
+                      icon: "🔵",
+                    },
+                  ].map((item) => {
+                    const percentage = payments.length
+                      ? (item.value / payments.length) * 100
+                      : 0;
+
+                    return (
+                      <Box key={item.label} sx={{ mb: 3 }}>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            justifyContent:
+                              "space-between",
+                            mb: 1,
+                          }}
+                        >
+                          <Typography
+                            sx={{ fontWeight: 600 }}
+                          >
+                            {item.icon} {item.label}
+                          </Typography>
+
+                          <Typography
+                            sx={{ fontWeight: 700 }}
+                          >
+                            {item.value}
+                          </Typography>
+                        </Box>
+
+                        <Box
+                          sx={{
+                            height: 10,
+                            borderRadius: 5,
+                            background:
+                              "rgba(255,255,255,0.08)",
+                            overflow: "hidden",
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              width: `${percentage}%`,
+                              height: "100%",
+                              borderRadius: 5,
+                              background:
+                                "linear-gradient(90deg, #5B8CFF, #8C6CFF)",
+                              transition: "width 0.5s ease",
+                            }}
+                          />
+                        </Box>
+                      </Box>
+                    );
+                  })}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent sx={{ p: 3 }}>
+                  <Typography
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: 18,
+                    }}
+                  >
+                    Payment Volume
+                  </Typography>
+
+                  <Typography
+                    color="text.secondary"
+                    variant="body2"
+                    sx={{ mt: 0.5, mb: 4 }}
+                  >
+                    Latest transactions from the API
+                  </Typography>
+
+                  {payments.length === 0 ? (
+                    <Typography color="text.secondary">
+                      No payment data available
+                    </Typography>
+                  ) : (
+                    payments
+                      .slice(-8)
+                      .reverse()
+                      .map((payment) => (
+                        <Box
+                          key={payment.id}
+                          sx={{ mb: 2 }}
+                        >
+                          <Box
+                            sx={{
+                              display: "flex",
+                              justifyContent:
+                                "space-between",
+                              mb: 0.8,
+                            }}
+                          >
+                            <Typography
+                              variant="body2"
+                              sx={{ fontWeight: 600 }}
+                            >
+                              Payment #{payment.id}
+                            </Typography>
+
+                            <Typography
+                              variant="body2"
+                              sx={{ fontWeight: 700 }}
+                            >
+                              ₹
+                              {payment.amount.toLocaleString(
+                                "en-IN"
+                              )}
+                            </Typography>
+                          </Box>
+
+                          <Box
+                            sx={{
+                              height: 8,
+                              borderRadius: 4,
+                              background:
+                                "rgba(255,255,255,0.08)",
+                              overflow: "hidden",
+                            }}
+                          >
+                            <Box
+                              sx={{
+                                width: `${Math.min(
+                                  Math.max(
+                                    (payment.amount /
+                                      totalAmount) *
+                                      100,
+                                    5
+                                  ),
+                                  100
+                                )}%`,
+                                height: "100%",
+                                borderRadius: 4,
+                                background: "#5B8CFF",
+                              }}
+                            />
+                          </Box>
+                        </Box>
+                      ))
+                  )}
+                </CardContent>
+              </Card>
+            </Box>
+          </Box>
+        </Box>
+      </ThemeProvider>
+    );
+  }
 
   return (
     <ThemeProvider theme={theme}>

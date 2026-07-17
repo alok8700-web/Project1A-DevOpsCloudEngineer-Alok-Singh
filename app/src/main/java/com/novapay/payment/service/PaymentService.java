@@ -1,54 +1,41 @@
 package com.novapay.payment.service;
 
 import com.novapay.payment.model.Payment;
+import com.novapay.payment.repository.PaymentRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
 
 @Service
 public class PaymentService {
 
-    private final List<Payment> payments = new ArrayList<>();
+    private final PaymentRepository paymentRepository;
 
-    private final AtomicLong paymentId = new AtomicLong(0);
-
-    public PaymentService() {
-        payments.add(
-            new Payment(
-                paymentId.incrementAndGet(),
-                3000,
-                "CREATED",
-                Instant.now()
-            )
-        );
+    public PaymentService(PaymentRepository paymentRepository) {
+        this.paymentRepository = paymentRepository;
     }
 
     public List<Payment> getPayments() {
-        return payments;
+        return paymentRepository.findAll();
     }
 
     public Payment createPayment(Integer amount) {
         Payment payment = new Payment(
-            paymentId.incrementAndGet(),
             amount,
             "CREATED",
             Instant.now()
         );
 
-        payments.add(payment);
-
-        return payment;
+        return paymentRepository.save(payment);
     }
 
     public Payment updateStatus(Long paymentId, String newStatus) {
 
-        Payment payment = payments.stream()
-            .filter(item -> item.getId().equals(paymentId))
-            .findFirst()
-            .orElseThrow(() -> new RuntimeException("Payment not found"));
+        Payment payment = paymentRepository.findById(paymentId)
+            .orElseThrow(
+                () -> new RuntimeException("Payment not found")
+            );
 
         String currentStatus = payment.getStatus();
 
@@ -69,6 +56,6 @@ public class PaymentService {
 
         payment.setStatus(newStatus);
 
-        return payment;
+        return paymentRepository.save(payment);
     }
 }
