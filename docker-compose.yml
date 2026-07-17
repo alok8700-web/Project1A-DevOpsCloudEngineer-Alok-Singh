@@ -1,0 +1,33 @@
+services:
+
+  postgres:
+    image: postgres:16
+    container_name: novapay-postgres
+    environment:
+      POSTGRES_DB: novapay
+      POSTGRES_USER: novapay
+      POSTGRES_PASSWORD: novapay123
+    ports:
+      - "5432:5432"
+    volumes:
+      - novapay-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U novapay -d novapay"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ./app
+    container_name: novapay-api
+    environment:
+      DB_HOST: postgres
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  novapay-postgres-data:

@@ -1,2 +1,3 @@
 *.tgz
 target/
+novapay-backup.sql
