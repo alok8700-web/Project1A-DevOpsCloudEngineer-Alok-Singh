@@ -38,5 +38,57 @@ services:
     depends_on:
       - api
 
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    container_name: novapay-prometheus
+    ports:
+      - "9090:9090"
+    mem_limit: 200m
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    depends_on:
+      - api
+
+  grafana:
+    image: grafana/grafana:12.0.2
+    container_name: novapay-grafana
+    ports:
+      - "3000:3000"
+    mem_limit: 300m
+    depends_on:
+      - prometheus
+    volumes:
+      - grafana-data:/var/lib/grafana
+
+  loki:
+    image: grafana/loki:3.7.0
+    container_name: novapay-loki
+    ports:
+      - "3100:3100"
+    mem_limit: 200m
+    command: -config.file=/etc/loki/loki-config.yaml
+    volumes:
+      - ./monitoring/loki/loki-config.yaml:/etc/loki/loki-config.yaml:ro
+      - loki-data:/loki
+
+  alloy:
+    image: grafana/alloy:latest
+    container_name: novapay-alloy
+    mem_limit: 150m
+    depends_on:
+      - loki
+    command:
+      - run
+      - --server.http.listen-addr=0.0.0.0:12345
+      - --storage.path=/var/lib/alloy/data
+      - /etc/alloy/config.alloy
+    volumes:
+      - ./monitoring/alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - alloy-data:/var/lib/alloy/data
+
 volumes:
   novapay-postgres-data:
+  grafana-data:
+  loki-data:
+  alloy-data:
