@@ -1,3 +1,8 @@
 *.tgz
 target/
 novapay-backup.sql
+
+# Terraform state
+*.tfstate
+*.tfstate.*
+.terraform/
