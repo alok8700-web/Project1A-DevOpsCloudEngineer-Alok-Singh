@@ -32,6 +32,9 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Configure Maven Settings
+        env:
+          NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
+          NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
         run: |
           mkdir -p ~/.m2
 
@@ -40,12 +43,23 @@ jobs:
             <servers>
               <server>
                 <id>nexus</id>
-                <username>${{ secrets.NEXUS_USERNAME }}</username>
-                <password>${{ secrets.NEXUS_PASSWORD }}</password>
+                <username>${NEXUS_USERNAME}</username>
+                <password>${NEXUS_PASSWORD}</password>
               </server>
             </servers>
           </settings>
           EOF
+
+          echo "===== Maven Settings ====="
+          cat ~/.m2/settings.xml
+
+      - name: Test Nexus Authentication
+        env:
+          NEXUS_USERNAME: ${{ secrets.NEXUS_USERNAME }}
+          NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
+        run: |
+          curl -v -u "$NEXUS_USERNAME:$NEXUS_PASSWORD" \
+            http://54.206.127.76:8081/repository/maven-snapshots/
 
       - name: SonarQube Scan
         env:
@@ -102,7 +116,5 @@ jobs:
       - name: Upload Helm Chart to Nexus
         run: |
           curl -u ${{ secrets.NEXUS_USERNAME }}:${{ secrets.NEXUS_PASSWORD }} \
-          --upload-file novapay-chart-0.1.0.tgz \
-          ${{ secrets.NEXUS_HELM_REPO }}
-    
-
+            --upload-file novapay-chart-0.1.0.tgz \
+            ${{ secrets.NEXUS_HELM_REPO }}
