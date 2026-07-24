@@ -1,0 +1,3 @@
+aws_region   = "ap-southeast-2"
+project_name = "novapay"
+environment  = "dev"
